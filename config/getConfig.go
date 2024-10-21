@@ -11,7 +11,7 @@ func GetConfig(args ...string) (*Config, error) {
 	config := &Config{}
 
 	// set default file path
-	filePath := "../settings/default.yaml"
+	filePath := "../settings/sample.yaml"
 	// collect the filepath from varidac arguments if provided
 	if len(args) > 0 {
 		filePath = args[0]

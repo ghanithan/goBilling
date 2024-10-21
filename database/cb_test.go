@@ -9,7 +9,7 @@ import (
 )
 
 func TestInitCouchbaseDb(t *testing.T) {
-	config, err := config.GetConfig()
+	config, err := config.GetConfig("../settings/sample.yaml")
 	if err != nil {
 		t.Fatalf("Error in reading config: %s", err)
 	}
