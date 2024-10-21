@@ -9,7 +9,10 @@ import (
 )
 
 func TestInitCouchbaseDb(t *testing.T) {
-	config, err := config.GetConfig("../settings/sample.yaml")
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+	config, err := config.GetConfig("../settings/default.yaml")
 	if err != nil {
 		t.Fatalf("Error in reading config: %s", err)
 	}
