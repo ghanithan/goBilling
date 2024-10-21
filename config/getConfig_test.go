@@ -14,6 +14,13 @@ func TestGetConfig(t *testing.T) {
 					Host: "http://localhost",
 					Port: "3000",
 				},
+				Db: DbConfig{
+					Host:     "localhost",
+					Port:     "8091",
+					Reponame: "vizha",
+					Username: "username",
+					Password: "password",
+				},
 			}
 			got, err := GetConfig()
 			if err != nil {
