@@ -1,8 +1,10 @@
 package instrumentation
 
 import (
+	"log"
 	"log/slog"
 	"os"
+	"time"
 )
 
 type GoLogger struct {
@@ -28,4 +30,9 @@ func (l *GoLogger) Warn(msg string, args ...any) {
 
 func (l *GoLogger) Error(msg string, args ...any) {
 	l.logger.Error(msg, args...)
+}
+
+func TimeTheFunction(start time.Time, functionName string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %dms to complete", functionName, elapsed.Nanoseconds()/1000)
 }

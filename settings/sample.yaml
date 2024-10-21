@@ -1,0 +1,10 @@
+server:
+  host: http://localhost
+  port: 3000
+
+db:
+  host: http://localhost
+  port: 8091
+  reponame: vizha
+  username: *******
+  password: *******
