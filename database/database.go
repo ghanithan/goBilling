@@ -6,5 +6,5 @@ type DbService interface {
 }
 
 type DbStub interface {
-	FetchById(...string) any
+	FetchById(string, string) (any, error)
 }

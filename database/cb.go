@@ -7,12 +7,15 @@ import (
 
 	"github.com/couchbase/gocb/v2"
 	"github.com/ghanithan/goBilling/config"
+	"github.com/ghanithan/goBilling/instrumentation"
 )
 
 // Module for couchbase db wrapper
 
 type couchbaseDatabase struct {
-	Db *gocb.Cluster
+	Db     *gocb.Cluster
+	Bucket *gocb.Bucket
+	logger instrumentation.GoLogger
 }
 
 var (
@@ -20,7 +23,8 @@ var (
 	dbInstance couchbaseDatabase
 )
 
-func InitCouchbaseDb(config *config.Config) couchbaseDatabase {
+func InitCouchbaseDb(config *config.Config, logger instrumentation.GoLogger) couchbaseDatabase {
+	defer logger.TimeTheFunction(time.Now(), "InitCouchbaseDb")
 	once.Do(func() {
 		options := gocb.ClusterOptions{
 			Authenticator: gocb.PasswordAuthenticator{
@@ -49,18 +53,50 @@ func InitCouchbaseDb(config *config.Config) couchbaseDatabase {
 			log.Fatal(err)
 		}
 
+		bucket := cluster.Bucket(config.Db.Reponame)
+		err = bucket.WaitUntilReady(5*time.Second, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		dbInstance = couchbaseDatabase{
-			Db: cluster,
+			Db:     cluster,
+			Bucket: bucket,
+			logger: logger,
 		}
 	})
 	return dbInstance
 }
 
-func (cb *couchbaseDatabase) GetDb() *gocb.Cluster {
+func (cb *couchbaseDatabase) GetDbInstance() *gocb.Cluster {
 	return cb.Db
+}
+
+func (cb *couchbaseDatabase) GetDb() *gocb.Bucket {
+	return cb.Bucket
 }
 
 func (cb *couchbaseDatabase) Close() {
 	closeOpt := gocb.ClusterCloseOptions{}
 	cb.Db.Close(&closeOpt)
+}
+
+func (cb *couchbaseDatabase) FetchById(collection string, id string) (*gocb.GetResult, error) {
+	getResult, err := cb.Bucket.Collection(collection).Get(id, &gocb.GetOptions{})
+	if err != nil {
+		cb.logger.Error("Issue in fetching from collection: %q", err)
+		return nil, err
+	}
+
+	return getResult, nil
+}
+
+func ExtractContent[T any](getResult *gocb.GetResult, extractedOutput *T, logger instrumentation.GoLogger) error {
+	err := getResult.Content(getResult)
+	if err != nil {
+		logger.Error("Issue in unmarsheling: %q", err)
+		return err
+	}
+	return nil
+
 }
